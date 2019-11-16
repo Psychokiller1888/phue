@@ -22,9 +22,9 @@ import requests
 logger = logging.getLogger('phue')
 
 if platform.system() == 'Windows':
-    USER_HOME = 'USERPROFILE'
+	USER_HOME = 'USERPROFILE'
 else:
-    USER_HOME = 'HOME'
+	USER_HOME = 'HOME'
 
 __version__ = '2.0'
 
@@ -559,9 +559,9 @@ class Scene(object):
 
 
 	def __init__(self, sid, appdata = None, lastupdated = None,
-	             lights = None, locked = False, name = "", owner = "",
-	             picture = "", recycle = False, version = 0, type = "", group = "",
-	             *args, **kwargs):
+				 lights = None, locked = False, name = "", owner = "",
+				 picture = "", recycle = False, version = 0, type = "", group = "",
+				 *args, **kwargs):
 		self.scene_id = sid
 		self.appdata = appdata or {}
 		self.lastupdated = lastupdated
@@ -1134,11 +1134,11 @@ class Bridge(object):
 
 	def activate_scene(self, group_id, scene_id, transition_time = 4):
 		return self.request('PUT', '/api/' + self.username + '/groups/' +
-		                    str(group_id) + '/action',
-		                    {
-			                    "scene"         : scene_id,
-			                    "transitiontime": transition_time
-		                    })
+							str(group_id) + '/action',
+							{
+								"scene"         : scene_id,
+								"transitiontime": transition_time
+							})
 
 
 	def run_scene(self, group_name, scene_name, transition_time = 4):
@@ -1182,7 +1182,7 @@ class Bridge(object):
 				self.activate_scene(group.group_id, scene.scene_id, transition_time)
 				return True
 		logger.warn("run_scene: did not find a scene: {} "
-		            "that shared lights with group {}".format(scene_name, group_name))
+					"that shared lights with group {}".format(scene_name, group_name))
 		return False
 
 
@@ -1203,7 +1203,7 @@ class Bridge(object):
 				{
 					'method' : 'PUT',
 					'address': ('/api/' + self.username +
-					            '/lights/' + str(light_id) + '/state'),
+								'/lights/' + str(light_id) + '/state'),
 					'body'   : data
 				}
 		}
@@ -1227,7 +1227,7 @@ class Bridge(object):
 				{
 					'method' : 'PUT',
 					'address': ('/api/' + self.username +
-					            '/groups/' + str(group_id) + '/action'),
+								'/groups/' + str(group_id) + '/action'),
 					'body'   : data
 				}
 		}
