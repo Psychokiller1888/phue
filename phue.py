@@ -15,7 +15,7 @@ I am in no way affiliated with the Philips organization.
 
 import json
 import logging
-from sys import platform
+import platform
 
 import requests
 
@@ -630,8 +630,7 @@ class Bridge(object):
 	@property
 	def name(self):
 		"""Get or set the name of the bridge [string]"""
-		self._name = self.request(
-			'GET', '/api/' + self.username + '/config')['name']
+		self._name = self.request('GET', '/api/' + self.username + '/config')['name']
 		return self._name
 
 
@@ -639,15 +638,14 @@ class Bridge(object):
 	def name(self, value):
 		self._name = value
 		data = {'name': self._name}
-		self.request(
-			'PUT', '/api/' + self.username + '/config', data)
+		self.request('PUT', '/api/' + self.username + '/config', data)
 
 
 	def request(self, mode = 'GET', address = None, data = None):
 		data = data or dict()
 
 		try:
-			req = requests.request(method=mode, url=address, data=json.dumps(data), timeout=5)
+			req = requests.request(method=mode, url=f'http://{self.ip}{address}', data=json.dumps(data), timeout=5)
 			return req.json()
 		except TimeoutError:
 			raise PhueRequestTimeout(None, f'{mode} Request to {self.ip}{address} timed out.')
@@ -1127,11 +1125,11 @@ class Bridge(object):
 
 	def activate_scene(self, group_id, scene_id, transition_time = 4):
 		return self.request('PUT', '/api/' + self.username + '/groups/' +
-							str(group_id) + '/action',
-							{
-								"scene"         : scene_id,
-								"transitiontime": transition_time
-							})
+		                    str(group_id) + '/action',
+		                    {
+			                    "scene"         : scene_id,
+			                    "transitiontime": transition_time
+		                    })
 
 
 	def run_scene(self, group_name, scene_name, transition_time = 4):
@@ -1177,7 +1175,7 @@ class Bridge(object):
 				self.activate_scene(group.group_id, scene.scene_id, transition_time)
 				return True
 		logger.warning("run_scene: did not find a scene: {} "
-					"that shared lights with group {}".format(scene_name, group_name))
+		               "that shared lights with group {}".format(scene_name, group_name))
 		return False
 
 
@@ -1198,7 +1196,7 @@ class Bridge(object):
 				{
 					'method' : 'PUT',
 					'address': ('/api/' + self.username +
-								'/lights/' + str(light_id) + '/state'),
+					            '/lights/' + str(light_id) + '/state'),
 					'body'   : data
 				}
 		}
@@ -1222,7 +1220,7 @@ class Bridge(object):
 				{
 					'method' : 'PUT',
 					'address': ('/api/' + self.username +
-								'/groups/' + str(group_id) + '/action'),
+					            '/groups/' + str(group_id) + '/action'),
 					'body'   : data
 				}
 		}
