@@ -87,7 +87,7 @@ class Light(object):
 
 		if self.transitiontime:
 			kwargs['transitiontime'] = self.transitiontime
-			logger.debug(f'Setting with transitiontime = {self.transitiontime} ds = {float(self.transitiontime) / 10} s'
+			logger.debug(f'Setting with transitiontime = {self.transitiontime} ds = {float(self.transitiontime) / 10} s')
 
 			if (args[0] == 'on' and not args[1]) or not kwargs.get('on', True):
 				self._reset_bri_after_on = True
@@ -226,9 +226,9 @@ class Light(object):
 	@colortemp.setter
 	def colortemp(self, value):
 		if value < 154:
-			logger.warn('154 mireds is coolest allowed color temp')
+			logger.warning('154 mireds is coolest allowed color temp')
 		elif value > 500:
-			logger.warn('500 mireds is warmest allowed color temp')
+			logger.warning('500 mireds is warmest allowed color temp')
 		self._colortemp = value
 		self._set('ct', self._colortemp)
 
@@ -243,10 +243,10 @@ class Light(object):
 	@colortemp_k.setter
 	def colortemp_k(self, value):
 		if value > 6500:
-			logger.warn('6500 K is max allowed color temp')
+			logger.warning('6500 K is max allowed color temp')
 			value = 6500
 		elif value < 2000:
-			logger.warn('2000 K is min allowed color temp')
+			logger.warning('2000 K is min allowed color temp')
 			value = 2000
 
 		colortemp_mireds = int(round(1e6 / value))
@@ -347,11 +347,7 @@ class Sensor(object):
 
 	def __repr__(self):
 		# like default python repr function, but add sensor name
-		return '<{0}.{1} object "{2}" at {3}>'.format(
-			self.__class__.__module__,
-			self.__class__.__name__,
-			self.name,
-			hex(id(self)))
+		return f'<{self.__class__.__module__}.{self.__class__.__name__} object "{self.name}" at {hex(id(self))}>'
 
 
 	# Wrapper functions for get/set through the bridge
@@ -375,8 +371,7 @@ class Sensor(object):
 		self._name = value
 		self._set('name', self._name)
 
-		logger.debug("Renaming sensor from '{0}' to '{1}'".format(
-			old_name, value))
+		logger.debug(f"Renaming sensor from '{old_name}' to '{value}'")
 
 		self.bridge.sensors_by_name[self.name] = self
 		del self.bridge.sensors_by_name[old_name]
@@ -558,24 +553,23 @@ class Scene(object):
 	""" Container for Scene """
 
 
-	def __init__(self, sid, appdata = None, lastupdated = None,
-				 lights = None, locked = False, name = "", owner = "",
-				 picture = "", recycle = False, version = 0, type = "", group = "",
-				 *args, **kwargs):
+	def __init__(self, sid, appdata = None, lastupdated = None, lights = None, locked = False, name = '', owner = '', picture = '', recycle = False, version = 0, ttype = '', group = '', *_args, **_kwargs):
 		self.scene_id = sid
-		self.appdata = appdata or {}
+		self.appdata = appdata or dict()
 		self.lastupdated = lastupdated
-		if lights is not None:
+
+		if lights:
 			self.lights = sorted([int(x) for x in lights])
 		else:
-			self.lights = []
+			self.lights = list()
+
 		self.locked = locked
 		self.name = name
 		self.owner = owner
 		self.picture = picture
 		self.recycle = recycle
 		self.version = version
-		self.type = type
+		self.type = ttype
 		self.group = group
 
 
@@ -746,8 +740,7 @@ class Bridge(object):
 			lights = self.request('GET', '/api/' + self.username + '/lights/')
 			for light in lights:
 				self.lights_by_id[int(light)] = Light(self, int(light))
-				self.lights_by_name[lights[light][
-					'name']] = self.lights_by_id[int(light)]
+				self.lights_by_name[lights[light]['name']] = self.lights_by_id[int(light)]
 		if mode == 'id':
 			return self.lights_by_id
 		if mode == 'name':
@@ -774,8 +767,7 @@ class Bridge(object):
 			sensors = self.request('GET', '/api/' + self.username + '/sensors/')
 			for sensor in sensors:
 				self.sensors_by_id[int(sensor)] = Sensor(self, int(sensor))
-				self.sensors_by_name[sensors[sensor][
-					'name']] = self.sensors_by_id[int(sensor)]
+				self.sensors_by_name[sensors[sensor]['name']] = self.sensors_by_id[int(sensor)]
 		if mode == 'id':
 			return self.sensors_by_id
 		if mode == 'name':
@@ -828,7 +820,7 @@ class Bridge(object):
 		else:
 			try:
 				return state['state'][parameter]
-			except KeyError as e:
+			except KeyError:
 				raise KeyError(f'Not a valid key, parameter {parameter} is not associated with light {light_id})')
 
 
@@ -871,7 +863,7 @@ class Bridge(object):
 				result.append(self.request('PUT', '/api/' + self.username + '/lights/' + str(
 					converted_light) + '/state', data))
 			if 'error' in list(result[-1][0].keys()):
-				logger.warn("ERROR: {0} for light {1}".format(
+				logger.warning("ERROR: {0} for light {1}".format(
 					result[-1][0]['error']['description'], light))
 
 		logger.debug(result)
@@ -995,12 +987,10 @@ class Bridge(object):
 		if "lastupdated" in data:
 			del data["lastupdated"]
 
-		result = None
 		logger.debug(str(data))
-		result = self.request('PUT', '/api/' + self.username + '/sensors/' + str(
-			sensor_id) + "/" + structure, data)
+		result = self.request('PUT', '/api/' + self.username + '/sensors/' + str(sensor_id) + "/" + structure, data)
 		if 'error' in list(result[0].keys()):
-			logger.warn("ERROR: {0} for sensor {1}".format(
+			logger.warning("ERROR: {0} for sensor {1}".format(
 				result[0]['error']['description'], sensor_id))
 
 		logger.debug(result)
@@ -1079,9 +1069,12 @@ class Bridge(object):
 				transitiontime))  # must be int for request format
 
 		group_id_array = group_id
+
 		if isinstance(group_id, int) or group_id:
 			group_id_array = [group_id]
 		result = []
+
+		group = 'unknown'
 		for group in group_id_array:
 			logger.debug(str(data))
 			if group:
@@ -1097,7 +1090,7 @@ class Bridge(object):
 				result.append(self.request('PUT', '/api/' + self.username + '/groups/' + str(converted_group) + '/action', data))
 
 		if 'error' in list(result[-1][0].keys()):
-			logger.warning("ERROR: {0} for group {1}".format(result[-1][0]['error']['description'], group))
+			logger.warning(f"ERROR: {result[-1][0]['error']['description']} for group {group}")
 
 		logger.debug(result)
 		return result
@@ -1157,6 +1150,8 @@ class Bridge(object):
 		perfect, but is convenient for setting lights symbolically (and
 		can be improved later).
 
+		:param scene_name:
+		:param group_name:
 		:param transition_time: The duration of the transition from the
 		light’s current state to the new state in a multiple of 100ms
 		:returns True if a scene was run, False otherwise
@@ -1165,11 +1160,11 @@ class Bridge(object):
 		groups = [x for x in self.groups if x.name == group_name]
 		scenes = [x for x in self.scenes if x.name == scene_name]
 		if len(groups) != 1:
-			logger.warn("run_scene: More than 1 group found by name {}".format(group_name))
+			logger.warning("run_scene: More than 1 group found by name {}".format(group_name))
 			return False
 		group = groups[0]
 		if len(scenes) == 0:
-			logger.warn("run_scene: No scene found {}".format(scene_name))
+			logger.warning("run_scene: No scene found {}".format(scene_name))
 			return False
 		if len(scenes) == 1:
 			self.activate_scene(group.group_id, scenes[0].scene_id, transition_time)
@@ -1181,7 +1176,7 @@ class Bridge(object):
 			if group_lights == scene.lights:
 				self.activate_scene(group.group_id, scene.scene_id, transition_time)
 				return True
-		logger.warn("run_scene: did not find a scene: {} "
+		logger.warning("run_scene: did not find a scene: {} "
 					"that shared lights with group {}".format(scene_name, group_name))
 		return False
 
